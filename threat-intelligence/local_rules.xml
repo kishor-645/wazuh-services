@@ -1,0 +1,221 @@
+<!--
+  Enhanced AlienVault OTX Threat Intelligence Rules for Wazuh
+  Rules for detecting threats from OTX feeds with SSH integration
+-->
+
+<group name="otx_threat_intelligence">
+
+  <!-- OTX Malware Hash Detection Rules -->
+  <rule id="110010" level="14">
+    <if_sid>554, 550</if_sid>
+    <list field="md5" lookup="match_key">etc/otx/otx-malware-hashes</list>
+    <description>OTX: Malware file detected (MD5): $(file) - Hash: $(md5) - Threat: $list</description>
+    <mitre>
+      <id>T1204.002</id>
+    </mitre>
+    <group>otx,malware,file_integrity,</group>
+  </rule>
+
+  <rule id="110011" level="14">
+    <if_sid>554, 550</if_sid>
+    <list field="sha1" lookup="match_key">etc/otx/otx-malware-hashes</list>
+    <description>OTX: Malware file detected (SHA1): $(file) - Hash: $(sha1) - Threat: $list</description>
+    <mitre>
+      <id>T1204.002</id>
+    </mitre>
+    <group>otx,malware,file_integrity,</group>
+  </rule>
+
+  <rule id="110012" level="14">
+    <if_sid>554, 550</if_sid>
+    <list field="sha256" lookup="match_key">etc/otx/otx-malware-hashes</list>
+    <description>OTX: Malware file detected (SHA256): $(file) - Hash: $(sha256) - Threat: $list</description>
+    <mitre>
+      <id>T1204.002</id>
+    </mitre>
+    <group>otx,malware,file_integrity,</group>
+  </rule>
+
+  <!-- Enhanced OTX Malicious IP Detection Rules with SSH Integration -->
+  <rule id="110013" level="13">
+    <if_sid>1002, 5700, 5701, 5706, 5710, 5716, 5720, 5731, 5760, 5763, 5712</if_sid>
+    <list field="srcip" lookup="match_key">etc/otx/otx-malicious-ips</list>
+    <description>OTX: Connection from malicious IP: $(srcip) - Threat: $list</description>
+    <mitre>
+      <id>T1071</id>
+      <id>T1110</id>
+    </mitre>
+    <group>otx,network,malicious_ip,ssh_threat,</group>
+  </rule>
+
+  <rule id="110014" level="13">
+    <if_sid>1002, 5700</if_sid>
+    <list field="dstip" lookup="match_key">etc/otx/otx-malicious-ips</list>
+    <description>OTX: Connection to malicious IP: $(dstip) - Threat: $list</description>
+    <mitre>
+      <id>T1071</id>
+    </mitre>
+    <group>otx,network,malicious_ip,</group>
+  </rule>
+
+  <!-- SSH-Specific Malicious IP Rules -->
+  <rule id="110020" level="15">
+    <if_sid>5712, 5720, 5763</if_sid>
+    <list field="srcip" lookup="match_key">etc/otx/otx-malicious-ips</list>
+    <description>OTX: SSH brute force attack from known malicious IP: $(srcip) - Threat: $list</description>
+    <mitre>
+      <id>T1110</id>
+      <id>T1021.004</id>
+    </mitre>
+    <group>otx,ssh,brute_force,malicious_ip,</group>
+  </rule>
+
+  <rule id="110021" level="14">
+    <if_sid>5701, 5706, 5731</if_sid>
+    <list field="srcip" lookup="match_key">etc/otx/otx-malicious-ips</list>
+    <description>OTX: SSH reconnaissance/scan from known malicious IP: $(srcip) - Threat: $list</description>
+    <mitre>
+      <id>T1046</id>
+      <id>T1190</id>
+    </mitre>
+    <group>otx,ssh,reconnaissance,malicious_ip,</group>
+  </rule>
+
+  <rule id="110022" level="16">
+    <if_sid>5707, 5714</if_sid>
+    <list field="srcip" lookup="match_key">etc/otx/otx-malicious-ips</list>
+    <description>OTX: SSH exploit attempt from known malicious IP: $(srcip) - Threat: $list</description>
+    <mitre>
+      <id>T1210</id>
+      <id>T1068</id>
+    </mitre>
+    <group>otx,ssh,exploit,malicious_ip,</group>
+  </rule>
+
+  <rule id="110023" level="12">
+    <if_sid>5715</if_sid>
+    <list field="srcip" lookup="match_key">etc/otx/otx-malicious-ips</list>
+    <description>OTX: Successful SSH authentication from known malicious IP: $(srcip) - Threat: $list</description>
+    <mitre>
+      <id>T1078</id>
+      <id>T1021.004</id>
+    </mitre>
+    <group>otx,ssh,authentication_success,malicious_ip,</group>
+  </rule>
+
+  <!-- Domain-based Detection -->
+  <rule id="110015" level="12">
+    <if_sid>1002</if_sid>
+    <list field="dstip" lookup="address_match_key">etc/otx/otx-malicious-domains</list>
+    <description>OTX: Connection to malicious domain/IP: $(dstip) - Threat: $list</description>
+    <mitre>
+      <id>T1071.004</id>
+    </mitre>
+    <group>otx,dns,malicious_domain,</group>
+  </rule>
+
+  <rule id="110016" level="12">
+    <list field="hostname" lookup="match_key">etc/otx/otx-malicious-domains</list>
+    <description>OTX: Hostname matches malicious domain: $(hostname) - Threat: $list</description>
+    <mitre>
+      <id>T1071.004</id>
+    </mitre>
+    <group>otx,network,malicious_domain,</group>
+  </rule>
+
+  <!-- Web Access to Malicious Domains -->
+  <rule id="110017" level="11">
+    <if_sid>31100, 31101, 31102, 31103, 31104</if_sid>
+    <list field="url" lookup="match_key">etc/otx/otx-malicious-domains</list>
+    <description>OTX: Web access to malicious domain: $(url) - Threat: $list</description>
+    <mitre>
+      <id>T1071.001</id>
+    </mitre>
+    <group>otx,web,malicious_domain,</group>
+  </rule>
+
+  <!-- Failed Login Attempts from Malicious IPs -->
+  <rule id="110024" level="13">
+    <if_sid>5710, 5716, 5718, 5760</if_sid>
+    <list field="srcip" lookup="match_key">etc/otx/otx-malicious-ips</list>
+    <description>OTX: Failed SSH authentication from known malicious IP: $(srcip) - Threat: $list</description>
+    <mitre>
+      <id>T1110.001</id>
+      <id>T1021.004</id>
+    </mitre>
+    <group>otx,ssh,authentication_failed,malicious_ip,</group>
+  </rule>
+
+  <!-- SSH Connection Anomalies from Malicious IPs -->
+  <rule id="110025" level="11">
+    <if_sid>5704, 5705, 5740, 5741, 5742</if_sid>
+    <list field="srcip" lookup="match_key">etc/otx/otx-malicious-ips</list>
+    <description>OTX: SSH connection anomaly from known malicious IP: $(srcip) - Threat: $list</description>
+    <mitre>
+      <id>T1021.004</id>
+    </mitre>
+    <group>otx,ssh,connection_anomaly,malicious_ip,</group>
+  </rule>
+
+  <!-- SSH Protocol Violations from Malicious IPs -->
+  <rule id="110026" level="12">
+    <if_sid>5747, 5748, 5749, 5750, 5752, 5753</if_sid>
+    <list field="srcip" lookup="match_key">etc/otx/otx-malicious-ips</list>
+    <description>OTX: SSH protocol violation from known malicious IP: $(srcip) - Threat: $list</description>
+    <mitre>
+      <id>T1021.004</id>
+    </mitre>
+    <group>otx,ssh,protocol_violation,malicious_ip,</group>
+  </rule>
+
+  <!-- Correlation Rules for Multiple SSH Events from Same Malicious IP -->
+  <rule id="110027" level="14" frequency="3" timeframe="300">
+    <if_matched_sid>110020, 110021, 110024, 110025</if_matched_sid>
+    <same_source_ip/>
+    <description>OTX: Multiple SSH threats detected from same malicious IP: $(srcip)</description>
+    <mitre>
+      <id>T1110</id>
+      <id>T1021.004</id>
+    </mitre>
+    <group>otx,ssh,correlation,malicious_ip,</group>
+  </rule>
+
+  <!-- OTX Integration Status Rules -->
+  <rule id="110018" level="3">
+    <if_sid>530</if_sid>
+    <match>otx-threat-intel-update</match>
+    <description>OTX threat intelligence feeds updated successfully</description>
+    <group>otx,integration,</group>
+  </rule>
+
+  <rule id="110019" level="5">
+    <if_sid>530</if_sid>
+    <match>otx-threat-intel-update</match>
+    <match>Error|Failed|Exception</match>
+    <description>OTX threat intelligence feed update failed</description>
+    <group>otx,integration,errors,</group>
+  </rule>
+
+  <!-- Generic Network Rules for OTX Enhancement -->
+  <rule id="110028" level="10">
+    <if_sid>5712, 1001, 1002, 1003</if_sid>
+    <list field="srcip" lookup="match_key">etc/otx/otx-malicious-ips</list>
+    <description>OTX: Network activity from known malicious IP: $(srcip) - Threat: $list</description>
+    <mitre>
+      <id>T1071</id>
+    </mitre>
+    <group>otx,network,malicious_ip,</group>
+  </rule>
+
+  <!-- User Authentication Correlation -->
+  <rule id="110029" level="13">
+    <if_sid>5501, 5502, 5503</if_sid>
+    <list field="srcip" lookup="match_key">etc/otx/otx-malicious-ips</list>
+    <description>OTX: User authentication event from known malicious IP: $(srcip) - Threat: $list</description>
+    <mitre>
+      <id>T1078</id>
+    </mitre>
+    <group>otx,authentication,malicious_ip,</group>
+  </rule>
+
+</group>
